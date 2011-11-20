@@ -4,5 +4,6 @@ setup(
     name='txango',
     version= '0.1',
     install_requires = ['twisted'],
-    packages=find_packages()
+    packages=find_packages(),
+    zip_safe=False
 )
