@@ -1,0 +1,8 @@
+from setuptools import setup, find_packages
+
+setup(
+    name='txango',
+    version= '0.1',
+    install_requires = ['twisted'],
+    packages=find_packages()
+)
