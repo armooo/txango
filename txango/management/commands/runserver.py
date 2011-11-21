@@ -17,12 +17,6 @@ class Command(runserver.BaseRunserverCommand):
     def handle(self, addrport='', *args, **options):
         super(Command, self).handle(addrport, *args, **options)
 
-    def run(self, *args, **options):
-        use_reloader = options.get('use_reloader', True)
-        if use_reloader:
-            self.stderr.write("Auto reloading not supported.\n\n")
-        self.inner_run()
-
     def inner_run(self, *args, **options):
         from django.conf import settings
         from django.utils import translation
@@ -52,4 +46,4 @@ class Command(runserver.BaseRunserverCommand):
         site = server.Site(wsgi_resource)
 
         reactor.listenTCP(int(self.port), site, interface=self.addr)
-        reactor.run()
+        reactor.run(installSignalHandlers=0)
