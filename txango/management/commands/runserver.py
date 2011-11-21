@@ -2,6 +2,7 @@ import sys
 from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError
+from django.core.servers.basehttp import AdminMediaHandler
 from django.core.management.commands import runserver
 from django.utils import autoreload
 
@@ -16,6 +17,13 @@ class Command(runserver.BaseRunserverCommand):
 
     def handle(self, addrport='', *args, **options):
         super(Command, self).handle(addrport, *args, **options)
+
+    def get_handler(self, *args, **options):
+        """
+        Serves admin media like old-school (deprecation pending).
+        """
+        handler = super(Command, self).get_handler(*args, **options)
+        return AdminMediaHandler(handler, options.get('admin_media_path'))
 
     def inner_run(self, *args, **options):
         from django.conf import settings
