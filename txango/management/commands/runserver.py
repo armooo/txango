@@ -1,7 +1,6 @@
 import sys
 from optparse import make_option
 
-from django.core.management.base import BaseCommand, CommandError
 from django.core.servers.basehttp import AdminMediaHandler
 from django.core.management.commands import runserver
 from django.utils import autoreload
@@ -10,13 +9,11 @@ from twisted.internet import reactor
 from twisted.python import threadpool
 from twisted.web import server, wsgi
 
+
 class Command(runserver.BaseRunserverCommand):
     help = "Starts a twisted Web server."
 
     requires_model_validation = False
-
-    def handle(self, addrport='', *args, **options):
-        super(Command, self).handle(addrport, *args, **options)
 
     def get_handler(self, *args, **options):
         """
