@@ -1,10 +1,13 @@
+import datetime
+
 from twisted.internet import reactor
 from twisted.internet import threads
 
 
 class Task(object):
     """
-        Wraps a callable so it can be used as a Task.
+        Wraps a callable so it can be used as a Task. This is a celeryish task
+        api.
 
         func: The callable which will run
         blocking: Is this callable going to block
@@ -17,16 +20,26 @@ class Task(object):
         """
             Starts this task in the background.
         """
-        if self._blocking:
-            # We should setup our own thread pool
-            # Do we need to deferToThread from the IO thread not sure if it is
-            # thread safe so lets play it safe
-            def f():
-                threads.deferToThread(self._func, *args, **kwargs)
-            reactor.callFromThread(f)
-        else:
-            reactor.callFromThread(self._func, *args, **kwargs)
+        return self.apply_async(args, kwargs)
 
+    def apply_async(self, args=None, kwargs=None, countdown=None, eta=None):
+        if eta and countdown:
+            raise Exception('eta and countdown can not both be supplied')
+        if eta:
+            countdown = (eta - datetime.datetime.now()).total_seconds()
+        reactor.callFromThread(self._in_reactor, args, kwargs, countdown)
+
+    def _in_reactor(self, args, kwargs, countdown):
+        if countdown:
+            reactor.callLater(countdown, self._run, args, kwargs)
+        else:
+            self._run(args, kwargs)
+
+    def _run(self, args, kwargs):
+        if self._blocking:
+            threads.deferToThread(self._func, *args, **kwargs)
+        else:
+            self._func(*args, **kwargs)
 
     def __repr__(self):
         return '<Task blocking=%s for %r>' % (self._blocking, self._func)
