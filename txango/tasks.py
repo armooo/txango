@@ -26,7 +26,9 @@ class Task(object):
         if eta and countdown:
             raise Exception('eta and countdown can not both be supplied')
         if eta:
-            countdown = (eta - datetime.datetime.now()).total_seconds()
+            td = eta - datetime.datetime.now()
+            countdown = td.days * 24 * 3600 + td.seconds + \
+                        td.microseconds / 10**6
         reactor.callFromThread(self._in_reactor, args, kwargs, countdown)
 
     def _in_reactor(self, args, kwargs, countdown):
