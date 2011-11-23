@@ -32,7 +32,6 @@ class StaticResource(resource.Resource):
     def _add_static_file(self, path, fn):
         path = settings.STATIC_URL.split('/') + path.split('/')
         path = [seg for seg in path if seg]
-        print path, fn
 
         parent = self
         for seg in path[:-1]:
