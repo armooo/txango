@@ -1,29 +1,19 @@
 import sys
 from optparse import make_option
 
-from django.core.servers.basehttp import AdminMediaHandler
+from django.conf import settings
 from django.core.management.commands import runserver
-from django.utils import autoreload
 
 from twisted.internet import reactor
-from twisted.python import threadpool
-from twisted.web import server, wsgi
+from twisted.web import server
+
+from txango.resource import django_resource
 
 
 class Command(runserver.BaseRunserverCommand):
     help = "Starts a twisted Web server."
 
-    requires_model_validation = False
-
-    def get_handler(self, *args, **options):
-        """
-        Serves admin media like old-school (deprecation pending).
-        """
-        handler = super(Command, self).get_handler(*args, **options)
-        return AdminMediaHandler(handler, options.get('admin_media_path'))
-
     def inner_run(self, *args, **options):
-        from django.conf import settings
         from django.utils import translation
 
         quit_command = (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C'
@@ -42,13 +32,7 @@ class Command(runserver.BaseRunserverCommand):
              "quit_command": quit_command,
          })
 
-        application = self.get_handler(*args, **options)
-
-        pool = threadpool.ThreadPool()
-        reactor.callWhenRunning(pool.start)
-        reactor.addSystemEventTrigger('after', 'shutdown', pool.stop)
-        wsgi_resource = wsgi.WSGIResource(reactor, pool, application)
-        site = server.Site(wsgi_resource)
-
+        applacation = self.get_handler(*args, **options)
+        site = server.Site(django_resource())
         reactor.listenTCP(int(self.port), site, interface=self.addr)
         reactor.run(installSignalHandlers=0)
